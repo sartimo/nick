@@ -1,4 +1,4 @@
-name: Hugo Build and Deploy
+name: Hugo Build and Deploy 
 
 on:
   push:
