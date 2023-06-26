@@ -13,13 +13,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
       
-    - name: Set up Hugo
-      uses: peaceiris/actions-hugo@v2
-      with:
-        hugo-version: 'latest'
-      
-    - name: Build with Hugo
+
+    - name: Install hugo
       if: contains(github.event.head_commit.message, 'BUILD')
+      run: apt-get install hugo
+      
+    - name: Build site   
       run: hugo
       
     - name: Deploy to GitHub Pages
