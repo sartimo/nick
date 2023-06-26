@@ -1,6 +1,6 @@
 baseurl: ''
 languageCode: en-us
-title: Minimalist
+title: Pagoda
 googleAnalytics: ""
 disqusShortname: ""
 preserveTaxonomyNames: true
@@ -20,15 +20,15 @@ permalinks:
   writing: /:year/:month/:day/:slug/
 
 params:
-  description: "Minimalist theme for Hugo"
+  description: "experience inner transcendence on up to 64 cores"
 
 frontmatter:
-  author: Example
-  github: 'https://github.com/example'
-  facebook: 'https://facebook.com/example'
+  author: Timo Sarkar
+  github: 'https://github.com/0xtimosarkar/pagoda'
+  facebook: ''
   og_image: 
-  sitename: Minimalist
-  twitter: '@twitter'
+  sitename: Pagoda
+  twitter: ''
 
 sitemap:
   changefreq: monthly
