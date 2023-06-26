@@ -21,9 +21,6 @@ jobs:
     - name: Build site   
       run: hugo
       
-    - name: Deploy to GitHub Pages
+    - name: Deploy to Surge
       if: contains(github.event.head_commit.message, 'BUILD')
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.PAT }}
-        publish_dir: ./public
+      run: surge build/ ${{ secrets.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}
