@@ -23,4 +23,4 @@ jobs:
       
     - name: Deploy to Surge
       if: contains(github.event.head_commit.message, 'BUILD')
-      run: surge build/ ${{ secrets.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}
+      run: surge public/ ${{ secrets.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}
