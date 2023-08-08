@@ -1,0 +1,2 @@
+npm install -g circom
+npm install -g snarkjs
