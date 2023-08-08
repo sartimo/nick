@@ -1,52 +1,66 @@
-
-use std::env;
+use clap::{App, Arg};
 use std::fs;
+use std::path::Path;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let matches = App::new("Your CLI Tool")
+        .about("A description of your CLI tool")
+        .version("1.0")
+        .author("Your Name")
+        .subcommand(
+            App::new("init")
+                .about("Initialize a new project")
+                .arg(
+                    Arg::new("project_name")
+                        .about("Name of the project")
+                        .required(true),
+                )
+                .arg(
+                    Arg::new("path")
+                        .about("Custom path for the project")
+                        .short('p')
+                        .long("path")
+                        .takes_value(true),
+                ),
+        )
+        // Add more subcommands here
+        .get_matches();
 
-    if args.len() < 3 {
-        println!("Usage: {} init <project_name> [--path <directory_path>]", args[0]);
-        return;
+    if let Some(init_matches) = matches.subcommand_matches("init") {
+        let project_name = init_matches.value_of("project_name").unwrap();
+        let custom_path = init_matches.value_of("path").unwrap_or(".");
+
+        init_action(project_name, custom_path);
+    } else {
+        // Handle other subcommands here
+        println!("Unknown command. Use '--help' for available commands.");
     }
+}
 
-    let command = &args[1];
-    let project_name = &args[2];
+fn init_action(project_name: &str, custom_path: &str) {
+    let full_path = format!("{}/{}", custom_path, project_name);
 
-    match command.as_str() {
-        "init" => {
-            if args.contains(&String::from("--path")) {
-                if let Some(path_index) = args.iter().position(|x| x == "--path") {
-                    if let Some(custom_path) = args.get(path_index + 1) {
-                        init_action_with_custom_path(project_name, custom_path);
-                    } else {
-                        println!("Invalid usage of --path flag");
-                    }
-                }
+    if fs::create_dir(&full_path).is_ok() {
+        println!("Created project directory: {}", full_path);
+
+        let subdirs = ["src", "test"];
+
+        for subdir in subdirs.iter() {
+            let subdir_path = Path::new(&full_path).join(subdir);
+            if fs::create_dir(&subdir_path).is_ok() {
+                println!("Created subdirectory: {}", subdir_path.display());
             } else {
-                init_action(project_name);
+                println!("Failed to create subdirectory: {}", subdir_path.display());
             }
         }
-        _ => {
-            println!("Unknown command: {}", command);
+
+        let circuit_file_path = Path::new(&full_path).join("src/circuit.circom");
+        if fs::write(&circuit_file_path, "").is_ok() {
+            println!("Created circuit file: {}", circuit_file_path.display());
+        } else {
+            println!("Failed to create circuit file: {}", circuit_file_path.display());
         }
-    }
-}
-
-fn init_action(project_name: &str) {
-    if fs::create_dir(project_name).is_ok() {
-        println!("Created directory: {}", project_name);
     } else {
-        println!("Failed to create directory: {}", project_name);
+        println!("Failed to create project directory: {}", full_path);
     }
 }
-
-fn init_action_with_custom_path(project_name: &str, custom_path: &str) {
-    let full_path = format!("{}/{}", custom_path, project_name);
-    if fs::create_dir_all(&full_path).is_ok() {
-        println!("Created directory: {}", full_path);
-    } else {
-        println!("Failed to create directory: {}", full_path);
-    }
-}
-
