@@ -1,0 +1,17 @@
+	This is the short-form history of the project,
+	used mainly for generating release announcements  
+	via shipper. For the long form, see the file HISTORY.
+
+* 0.30: 2015=04-02
+  Mostly minor build and test fixes.  This release was actually forced by the
+  impending doom of gitorious.org; the project hosting had to change and the
+  metadata with it.
+
+* 0.29: 2010-11-28
+  The first merged release from ESR and Alex Smith, with encouragement from
+  Donald Knuth. The compiler now has a regression-test suite. More error
+  checks (E990 and E004) have been added. A new program, guess.i, writhes 
+  in the pit. The mystery and history of the "Atari implementation" has
+  been clarified. Various minor bugs have been fixed.
+
+

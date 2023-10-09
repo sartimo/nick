@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# regresscheck - test driver for the INTERCAL regression-test suite
+#
+# This script expects to get output from an INTERCAL program to be checked 
+# on its standard input.  Its job is to compare that output against
+# a check file, which is presumably correct.
+#
+# If the program takes input, set up a pipeline with a cat at the beginning ,
+# the INTERCAL executable in the middle, and this script at the end.
+# The convention used by the INTERCAL test suite is that the input load for
+# a program foo is named foo.tst and the check file foo.chk.
+#
+# In normal use this script takes one argument, which is the location of the
+# check file with the trailing .chk extension omitted.  The extension is
+# omitted so that the basename can be used as the name of the program for
+# purposes of reporting success or failure.
+#
+# This pattern doesn't handle well the case where one program has multiple
+# tests, so options are provided to override the test file name 
+
+while getopts c:p: opt
+do
+    case $opt in
+	c) checkfile=$OPTARG ;;	# Override the location of the checkfile
+	p) progname=$OPTARG ;;	# Override the name used in reporting
+    esac
+done
+shift $(($OPTIND - 1))
+arg=$1
+
+if [ -z "$progname" ]
+then
+    progname=`basename ${arg}`
+fi
+if [ -z "$checkfile" ]
+then
+    checkfile=${arg}.chk
+fi
+
+if diff - ${checkfile}
+then 
+     echo "Regression test of $progname succeeded."; 
+else 
+     echo "Regression test of $progname FAILED."; 
+fi

@@ -1,0 +1,262 @@
+This is ick.info, produced by makeinfo version 5.2 from ick.txi.
+
+This manual is for C-INTERCAL version 0.29.  It does not replace the old
+groff manual, nor is it designed to be read in conjunction with it;
+instead, it serves a different purpose, of providing information useful
+to users of C-INTERCAL (unlike the other manual, it is not derived from
+the original INTERCAL-72 manual).
+
+Copyright © 2007 Alex Smith.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included in
+     the section entitled "GNU Free Documentation License."
+
+INFO-DIR-SECTION INTERCAL
+START-INFO-DIR-ENTRY
+* C-INTERCAL: (ick).                 The C-INTERCAL language and compiler.
+* ick: (ick) Invoking ick.           Invoking the C-INTERCAL compiler.
+* convickt: (ick) convickt.          The command-line character set converter.
+END-INFO-DIR-ENTRY
+
+
+Indirect:
+ick.info-1: 1118
+ick.info-2: 303881
+
+Tag Table:
+(Indirect)
+Node: Top1118
+Node: About this manual3587
+Node: Installation5362
+Node: Obtaining6473
+Node: Unpacking7983
+Node: Simple Installation12111
+Node: Installation on DOS18166
+Node: Uninstalling21847
+Node: Reporting Bugs23936
+Node: Distributing27688
+Node: Invoking ick29914
+Node: Language-affecting Options31112
+Ref: -b31901
+Ref: -m32711
+Ref: -e33383
+Ref: -E+34063
+Ref: -t34581
+Ref: -a34795
+Ref: -v35286
+Ref: -C+36068
+Ref: -P+36231
+Ref: -X+36944
+Ref: -x37595
+Node: Debug Options38384
+Ref: -d38802
+Ref: -g39070
+Ref: -h39416
+Ref: -H+39416
+Ref: -hH39416
+Ref: -l39933
+Ref: -p40266
+Ref: -w41152
+Ref: -u41508
+Ref: -y42002
+Ref: -Y+42211
+Ref: -U+42496
+Node: Output Options43384
+Ref: -c43869
+Ref: -o44619
+Node: Optimizer Options45029
+Ref: -f45301
+Ref: -F+45596
+Ref: -O+46053
+Node: Other Options46485
+Ref: -at46690
+Node: Options to Generated Programs46941
+Ref: +help47384
+Ref: -help47384
+Ref: +wimpmode47644
+Ref: -wimpmode47644
+Ref: +traditional48138
+Ref: -traditional48138
+Ref: +instapipe48224
+Ref: -instapipe48224
+Ref: +printflow48570
+Ref: -printflow48570
+Ref: +mystery49558
+Ref: -mystery49558
+Node: Environment Variables49744
+Node: Errors and Warnings51401
+Node: Errors53142
+Ref: E00053367
+Ref: E01753753
+Ref: E07953945
+Ref: E09954239
+Ref: E11154478
+Ref: E12354865
+Ref: E12755505
+Ref: E12956137
+Ref: E13956866
+Ref: E18257116
+Ref: E19757772
+Ref: E20058038
+Ref: E22258578
+Ref: E24059184
+Ref: E24159420
+Ref: E25259887
+Ref: E25660121
+Ref: E27560606
+Ref: E27761135
+Ref: E28162010
+Ref: E33362523
+Ref: E34562845
+Ref: E40463190
+Ref: E40563560
+Ref: E43664019
+Ref: E44464191
+Ref: E53364561
+Ref: E55365142
+Ref: E55565562
+Ref: E56266155
+Ref: E57966576
+Ref: E62166958
+Ref: E63267325
+Ref: E63367674
+Ref: E65268428
+Ref: E66668831
+Ref: E77469518
+Ref: E77770171
+Ref: E77870422
+Ref: E81071552
+Ref: E81171768
+Ref: E88871990
+Ref: E89972217
+Ref: E99072607
+Ref: E99172765
+Ref: E99373215
+Ref: E99473528
+Ref: E99573864
+Ref: E99774162
+Ref: E99874604
+Ref: E99974985
+Node: Warnings75443
+Ref: W01675778
+Ref: W01876030
+Ref: W11276685
+Ref: W12877164
+Ref: W27677706
+Ref: W23978246
+Ref: W27878612
+Ref: W45079102
+Ref: W53479446
+Ref: W62279944
+Node: The yuk debugger80258
+Ref: yuk80393
+Node: Syntax87183
+Node: Princeton and Atari Syntax88340
+Node: Line Labels91840
+Node: Statement Identifiers93891
+Ref: DO94495
+Ref: PLEASE94495
+Ref: NOT95044
+Ref: N'T95044
+Node: Execution Chance96642
+Node: ONCE and AGAIN98007
+Ref: ONCE98125
+Ref: AGAIN98125
+Node: Expressions100466
+Node: Constants and Variables101260
+Node: Grouping Rules103607
+Ref: Prefix and infix unary operators107187
+Node: Operators108864
+Node: Mingle109995
+Node: Select114313
+Node: Unary Binary Logic116852
+Node: Array Subscript121161
+Node: Statements122811
+Node: Syntax Error124130
+Node: Calculate126680
+Node: NEXT FORGET and RESUME128889
+Ref: NEXT129057
+Ref: FORGET129057
+Ref: RESUME129057
+Node: STASH and RETRIEVE132363
+Ref: STASH132531
+Ref: RETRIEVE132531
+Node: IGNORE and REMEMBER135076
+Ref: IGNORE135245
+Ref: REMEMBER135245
+Node: ABSTAIN and REINSTATE136789
+Ref: ABSTAIN136965
+Ref: REINSTATE136965
+Node: READ OUT and WRITE IN141670
+Ref: READ OUT141834
+Ref: WRITE IN141834
+Node: INTERCAL-72 I/O142819
+Node: C-INTERCAL I/O146013
+Node: CLC-INTERCAL I/O148459
+Node: GIVE UP151408
+Node: TRY AGAIN152298
+Node: COME FROM and NEXT FROM153180
+Ref: COME FROM153324
+Ref: NEXT FROM153324
+Node: System Libraries156835
+Node: syslib157932
+Node: floatlib163491
+Node: TriINTERCAL166779
+Node: Multithreading and Backtracking171602
+Node: Multithreading using COME FROM173585
+Node: Multithreading using WHILE177859
+Ref: WHILE178075
+Node: Backtracking183320
+Ref: MAYBE184661
+Ref: GO BACK185618
+Ref: GO AHEAD187933
+Node: Operand Overloading188410
+Node: PIC-INTERCAL192923
+Ref: PIN195413
+Node: CREATE197737
+Node: External Calls204129
+Node: External Calls to C206176
+Node: External C Call Infrastructure208380
+Node: ick_startup211719
+Node: ick_linelabel212583
+Node: ick_labeledblock214511
+Node: ick_comefrom and ick_nextfrom215976
+Node: ick_next218211
+Node: ick_resume219780
+Node: ick_forget221028
+Node: ick_get/setone/twospot222773
+Node: ick_create224097
+Node: External Calls and auto230877
+Node: External Calls to Funge-98236290
+Node: Creating the Funge-98 Library238028
+Node: The IFFI Fingerprint240847
+Node: Miscellaneous External Calls252702
+Node: Using External Calls254309
+Node: Expansion Libraries257327
+Node: Differences to Other Compilers261565
+Node: Character Sets266892
+Node: convickt271103
+Node: Optimizer Idiom Language276788
+Node: OIL Basics277906
+Node: OIL Syntax279923
+Node: OIL Expressions282880
+Node: OIL Patterns285480
+Ref: C functions in OIL288685
+Node: OIL Replacements293489
+Node: OIL Loops297545
+Node: OIL Tips299025
+Node: OIL Example303881
+Node: Copying308269
+Node: GNU Free Documentation License309779
+Node: Main Index332132
+
+End Tag Table
+
+
+Local Variables:
+coding: iso-8859-1
+End:

@@ -1,0 +1,1520 @@
+This is ick.info, produced by makeinfo version 5.2 from ick.txi.
+
+This manual is for C-INTERCAL version 0.29.  It does not replace the old
+groff manual, nor is it designed to be read in conjunction with it;
+instead, it serves a different purpose, of providing information useful
+to users of C-INTERCAL (unlike the other manual, it is not derived from
+the original INTERCAL-72 manual).
+
+Copyright © 2007 Alex Smith.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.  A copy of the license is included in
+     the section entitled "GNU Free Documentation License."
+
+INFO-DIR-SECTION INTERCAL
+START-INFO-DIR-ENTRY
+* C-INTERCAL: (ick).                 The C-INTERCAL language and compiler.
+* ick: (ick) Invoking ick.           Invoking the C-INTERCAL compiler.
+* convickt: (ick) convickt.          The command-line character set converter.
+END-INFO-DIR-ENTRY
+
+
+File: ick.info,  Node: OIL Example,  Prev: OIL Tips,  Up: Optimizer Idiom Language
+
+C.8 OIL Example
+===============
+
+To finish off this appendix, here's an example of the power of OIL; this
+is the optimization of an idiom from the INTERCAL-72 system library, as
+shown with '-H'; this should give a good idea of how OIL programs work.
+(All the relevant idioms are in 'idiotism.oil' as of the time of
+writing.)  Note how the expression is reduced one small step at a time;
+the smallness of the steps makes the optimizer more general, because if
+the original expression had been slightly different, the optimizer
+wouldn't have come to the same result but could have optimized it quite
+a bit of the way, up to the point where the optimizations were no longer
+valid; in an older version of INTERCAL, this idiom was simply hardcoded
+as a special case and so slight variations of it weren't optimized at
+all.  If you look at the idioms themselves, it'll also be apparent how
+'c' (the record of which bits of an expression can be 1 and which bits
+can't be) is important information in being able to apply an
+optimization more aggressively.
+
+     .3 <- ((((((((.3 $ 0x0) ~ (0x7fff $ 0x1)) $ 0x0) ~ (0x7fff $ 0x1))
+     $ 0x0) ~ (0x3fff $ 0x3)) $ 0x0) ~ (0xfff $ 0xf))
+     [minglefold]
+     .3 <- ((((((((.3 $ 0x0) ~ 0x2aaaaaab) $ 0x0) ~ (0x7fff $ 0x1)) $
+     0x0) ~ (0x3fff $ 0x3)) $ 0x0) ~ (0xfff $ 0xf))
+     [lshift16]
+     .3 <- ((((((((((.3 >> 0x0) & 0x7fff) << 0x1) | 0x0) $ 0x0) ~
+     (0x7fff $ 0x1)) $ 0x0) ~ (0x3fff $ 0x3)) $ 0x0) ~ (0xfff $ 0xf))
+     [noopor]
+     .3 <- (((((((((.3 >> 0x0) & 0x7fff) << 0x1) $ 0x0) ~ (0x7fff $
+     0x1)) $ 0x0) ~ (0x3fff $ 0x3)) $ 0x0) ~ (0xfff $ 0xf))
+     [minglefold]
+     .3 <- (((((((((.3 >> 0x0) & 0x7fff) << 0x1) $ 0x0) ~ 0x2aaaaaab) $
+     0x0) ~ (0x3fff $ 0x3)) $ 0x0) ~ (0xfff $ 0xf))
+     [lshift16]
+     .3 <- (((((((((((.3 >> 0x0) & 0x7fff) << 0x1) >> 0x0) & 0x7fff) <<
+     0x1) | 0x0) $ 0x0) ~ (0x3fff $ 0x3)) $ 0x0) ~ (0xfff $ 0xf))
+     [noopor]
+     .3 <- ((((((((((.3 >> 0x0) & 0x7fff) << 0x1) >> 0x0) & 0x7fff) <<
+     0x1) $ 0x0) ~ (0x3fff $ 0x3)) $ 0x0) ~ (0xfff $ 0xf))
+     [minglefold]
+     .3 <- ((((((((((.3 >> 0x0) & 0x7fff) << 0x1) >> 0x0) & 0x7fff) <<
+     0x1) $ 0x0) ~ 0xaaaaaaf) $ 0x0) ~ (0xfff $ 0xf))
+     [lshift16]
+     .3 <- ((((((((((((.3 >> 0x0) & 0x7fff) << 0x1) >> 0x0) & 0x7fff) <<
+     0x1) >> 0x1) & 0x1fff) << 0x3) | 0x0) $ 0x0) ~ (0xfff $ 0xf))
+     [noopor]
+     .3 <- (((((((((((.3 >> 0x0) & 0x7fff) << 0x1) >> 0x0) & 0x7fff) <<
+     0x1) >> 0x1) & 0x1fff) << 0x3) $ 0x0) ~ (0xfff $ 0xf))
+     [minglefold]
+     .3 <- (((((((((((.3 >> 0x0) & 0x7fff) << 0x1) >> 0x0) & 0x7fff) <<
+     0x1) >> 0x1) & 0x1fff) << 0x3) $ 0x0) ~ 0xaaaaff)
+     [lshift16]
+     .3 <- (((((((((((((.3 >> 0x0) & 0x7fff) << 0x1) >> 0x0) & 0x7fff)
+     << 0x1) >> 0x1) & 0x1fff) << 0x3) >> 0x3) & 0x1ff) << 0x7) | 0x0)
+     [noopor]
+     .3 <- ((((((((((((.3 >> 0x0) & 0x7fff) << 0x1) >> 0x0) & 0x7fff) <<
+     0x1) >> 0x1) & 0x1fff) << 0x3) >> 0x3) & 0x1ff) << 0x7)
+     [nullshift]
+     .3 <- (((((((((((.3 & 0x7fff) << 0x1) >> 0x0) & 0x7fff) << 0x1) >>
+     0x1) & 0x1fff) << 0x3) >> 0x3) & 0x1ff) << 0x7)
+     [combinelrshift]
+     .3 <- ((((((((((.3 & 0x7fff) << 0x1) & 0x7fff) << 0x1) >> 0x1) &
+     0x1fff) << 0x3) >> 0x3) & 0x1ff) << 0x7)
+     [andintolshift]
+     .3 <- ((((((((((.3 & 0x7fff) & 0x3fff) << 0x1) << 0x1) >> 0x1) &
+     0x1fff) << 0x3) >> 0x3) & 0x1ff) << 0x7)
+     [combinellshift]
+     .3 <- (((((((((.3 & 0x7fff) & 0x3fff) << 0x2) >> 0x1) & 0x1fff) <<
+     0x3) >> 0x3) & 0x1ff) << 0x7)
+     [combinelrshift]
+     .3 <- ((((((((.3 & 0x7fff) & 0x3fff) << 0x1) & 0x1fff) << 0x3) >>
+     0x3) & 0x1ff) << 0x7)
+     [andintolshift]
+     .3 <- ((((((((.3 & 0x7fff) & 0x3fff) & 0xfff) << 0x1) << 0x3) >>
+     0x3) & 0x1ff) << 0x7)
+     [combinellshift]
+     .3 <- (((((((.3 & 0x7fff) & 0x3fff) & 0xfff) << 0x4) >> 0x3) &
+     0x1ff) << 0x7)
+     [combinelrshift]
+     .3 <- ((((((.3 & 0x7fff) & 0x3fff) & 0xfff) << 0x1) & 0x1ff) <<
+     0x7)
+     [andintolshift]
+     .3 <- ((((((.3 & 0x7fff) & 0x3fff) & 0xfff) & 0xff) << 0x1) << 0x7)
+     [combinellshift]
+     .3 <- (((((.3 & 0x7fff) & 0x3fff) & 0xfff) & 0xff) << 0x8)
+     [combineand]
+     .3 <- ((((.3 & 0x3fff) & 0xfff) & 0xff) << 0x8)
+     [combineand]
+     .3 <- (((.3 & 0xfff) & 0xff) << 0x8)
+     [combineand]
+     .3 <- ((.3 & 0xff) << 0x8)
+
+
+File: ick.info,  Node: Copying,  Next: Main Index,  Prev: Optimizer Idiom Language,  Up: Top
+
+Appendix D Copying
+******************
+
+The majority of the files in the C-INTERCAL distribution are licensed
+under the GNU General Public License (version 2 or later), but with some
+exceptions.  The files 'ick-wrap.c' and 'pickwrap.c' are licensed under
+a license that allows them to be used for any purpose and redistributed
+at will, and are explicitly not GPL'd.  This means that C source code
+generated by the compiler has the same copyright conditions as the
+original INTERCAL source.  (Note that the libraries 'libick.a' and
+'libickmt.a' are GPL, though, so you cannot redistribute an executable
+produced by 'ick' or by linking a C file to either of those libraries
+unless the original INTERCAL source was GPL.) For similar reasons, the
+expansion libraries 'syslibc.c' and 'compunex.c' are explicitly public
+domain.  Also, this manual, and the files that are the source code for
+creating it, are licensed under the GNU Free Documentation License
+rather than the GPL, and the licenses themselves ('fdl-1-2.txi' and
+'COPYING.txt') are licensed under a license that allows verbatim
+redistribution but not creation of derivative works.  All other files,
+though (including the 'man' pages, which are not part of _this_ manual),
+are licensed under the GPL. For the full text of the GPL, see the file
+'COPYING.txt' in the distribution.
+
+* Menu:
+
+* GNU Free Documentation License::  License for copying this manual.
+
+
+File: ick.info,  Node: GNU Free Documentation License,  Up: Copying
+
+D.1 GNU Free Documentation License
+==================================
+
+                      Version 1.2, November 2002
+
+     Copyright © 2000,2001,2002 Free Software Foundation, Inc.
+     51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA
+
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     functional and useful document "free" in the sense of freedom: to
+     assure everyone the effective freedom to copy and redistribute it,
+     with or without modifying it, either commercially or
+     noncommercially.  Secondarily, this License preserves for the
+     author and publisher a way to get credit for their work, while not
+     being considered responsible for modifications made by others.
+
+     This License is a kind of "copyleft", which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.  We
+     recommend this License principally for works whose purpose is
+     instruction or reference.
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work, in any medium,
+     that contains a notice placed by the copyright holder saying it can
+     be distributed under the terms of this License.  Such a notice
+     grants a world-wide, royalty-free license, unlimited in duration,
+     to use that work under the conditions stated herein.  The
+     "Document", below, refers to any such manual or work.  Any member
+     of the public is a licensee, and is addressed as "you".  You accept
+     the license if you copy, modify or distribute the work in a way
+     requiring permission under copyright law.
+
+     A "Modified Version" of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A "Secondary Section" is a named appendix or a front-matter section
+     of the Document that deals exclusively with the relationship of the
+     publishers or authors of the Document to the Document's overall
+     subject (or to related matters) and contains nothing that could
+     fall directly within that overall subject.  (Thus, if the Document
+     is in part a textbook of mathematics, a Secondary Section may not
+     explain any mathematics.)  The relationship could be a matter of
+     historical connection with the subject or with related matters, or
+     of legal, commercial, philosophical, ethical or political position
+     regarding them.
+
+     The "Invariant Sections" are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in the
+     notice that says that the Document is released under this License.
+     If a section does not fit the above definition of Secondary then it
+     is not allowed to be designated as Invariant.  The Document may
+     contain zero Invariant Sections.  If the Document does not identify
+     any Invariant Sections then there are none.
+
+     The "Cover Texts" are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.  A
+     Front-Cover Text may be at most 5 words, and a Back-Cover Text may
+     be at most 25 words.
+
+     A "Transparent" copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, that is suitable for revising the document
+     straightforwardly with generic text editors or (for images composed
+     of pixels) generic paint programs or (for drawings) some widely
+     available drawing editor, and that is suitable for input to text
+     formatters or for automatic translation to a variety of formats
+     suitable for input to text formatters.  A copy made in an otherwise
+     Transparent file format whose markup, or absence of markup, has
+     been arranged to thwart or discourage subsequent modification by
+     readers is not Transparent.  An image format is not Transparent if
+     used for any substantial amount of text.  A copy that is not
+     "Transparent" is called "Opaque".
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and standard-conforming
+     simple HTML, PostScript or PDF designed for human modification.
+     Examples of transparent image formats include PNG, XCF and JPG.
+     Opaque formats include proprietary formats that can be read and
+     edited only by proprietary word processors, SGML or XML for which
+     the DTD and/or processing tools are not generally available, and
+     the machine-generated HTML, PostScript or PDF produced by some word
+     processors for output purposes only.
+
+     The "Title Page" means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, "Title
+     Page" means the text near the most prominent appearance of the
+     work's title, preceding the beginning of the body of the text.
+
+     A section "Entitled XYZ" means a named subunit of the Document
+     whose title either is precisely XYZ or contains XYZ in parentheses
+     following text that translates XYZ in another language.  (Here XYZ
+     stands for a specific section name mentioned below, such as
+     "Acknowledgements", "Dedications", "Endorsements", or "History".)
+     To "Preserve the Title" of such a section when you modify the
+     Document means that it remains a section "Entitled XYZ" according
+     to this definition.
+
+     The Document may include Warranty Disclaimers next to the notice
+     which states that this License applies to the Document.  These
+     Warranty Disclaimers are considered to be included by reference in
+     this License, but only as regards disclaiming warranties: any other
+     implication that these Warranty Disclaimers may have is void and
+     has no effect on the meaning of this License.
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow the
+     conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies (or copies in media that commonly
+     have printed covers) of the Document, numbering more than 100, and
+     the Document's license notice requires Cover Texts, you must
+     enclose the copies in covers that carry, clearly and legibly, all
+     these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the title
+     equally prominent and visible.  You may add other material on the
+     covers in addition.  Copying with changes limited to the covers, as
+     long as they preserve the title of the Document and satisfy these
+     conditions, can be treated as verbatim copying in other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a machine-readable
+     Transparent copy along with each Opaque copy, or state in or with
+     each Opaque copy a computer-network location from which the general
+     network-using public has access to download using public-standard
+     network protocols a complete Transparent copy of the Document, free
+     of added material.  If you use the latter option, you must take
+     reasonably prudent steps, when you begin distribution of Opaque
+     copies in quantity, to ensure that this Transparent copy will
+     remain thus accessible at the stated location until at least one
+     year after the last time you distribute an Opaque copy (directly or
+     through your agents or retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of copies,
+     to give them a chance to provide you with an updated version of the
+     Document.
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with the
+     Modified Version filling the role of the Document, thus licensing
+     distribution and modification of the Modified Version to whoever
+     possesses a copy of it.  In addition, you must do these things in
+     the Modified Version:
+
+       A. Use in the Title Page (and on the covers, if any) a title
+          distinct from that of the Document, and from those of previous
+          versions (which should, if there were any, be listed in the
+          History section of the Document).  You may use the same title
+          as a previous version if the original publisher of that
+          version gives permission.
+
+       B. List on the Title Page, as authors, one or more persons or
+          entities responsible for authorship of the modifications in
+          the Modified Version, together with at least five of the
+          principal authors of the Document (all of its principal
+          authors, if it has fewer than five), unless they release you
+          from this requirement.
+
+       C. State on the Title page the name of the publisher of the
+          Modified Version, as the publisher.
+
+       D. Preserve all the copyright notices of the Document.
+
+       E. Add an appropriate copyright notice for your modifications
+          adjacent to the other copyright notices.
+
+       F. Include, immediately after the copyright notices, a license
+          notice giving the public permission to use the Modified
+          Version under the terms of this License, in the form shown in
+          the Addendum below.
+
+       G. Preserve in that license notice the full lists of Invariant
+          Sections and required Cover Texts given in the Document's
+          license notice.
+
+       H. Include an unaltered copy of this License.
+
+       I. Preserve the section Entitled "History", Preserve its Title,
+          and add to it an item stating at least the title, year, new
+          authors, and publisher of the Modified Version as given on the
+          Title Page.  If there is no section Entitled "History" in the
+          Document, create one stating the title, year, authors, and
+          publisher of the Document as given on its Title Page, then add
+          an item describing the Modified Version as stated in the
+          previous sentence.
+
+       J. Preserve the network location, if any, given in the Document
+          for public access to a Transparent copy of the Document, and
+          likewise the network locations given in the Document for
+          previous versions it was based on.  These may be placed in the
+          "History" section.  You may omit a network location for a work
+          that was published at least four years before the Document
+          itself, or if the original publisher of the version it refers
+          to gives permission.
+
+       K. For any section Entitled "Acknowledgements" or "Dedications",
+          Preserve the Title of the section, and preserve in the section
+          all the substance and tone of each of the contributor
+          acknowledgements and/or dedications given therein.
+
+       L. Preserve all the Invariant Sections of the Document, unaltered
+          in their text and in their titles.  Section numbers or the
+          equivalent are not considered part of the section titles.
+
+       M. Delete any section Entitled "Endorsements".  Such a section
+          may not be included in the Modified Version.
+
+       N. Do not retitle any existing section to be Entitled
+          "Endorsements" or to conflict in title with any Invariant
+          Section.
+
+       O. Preserve any Warranty Disclaimers.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option designate
+     some or all of these sections as invariant.  To do this, add their
+     titles to the list of Invariant Sections in the Modified Version's
+     license notice.  These titles must be distinct from any other
+     section titles.
+
+     You may add a section Entitled "Endorsements", provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties--for example, statements of peer review or that the text
+     has been approved by an organization as the authoritative
+     definition of a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end of
+     the list of Cover Texts in the Modified Version.  Only one passage
+     of Front-Cover Text and one of Back-Cover Text may be added by (or
+     through arrangements made by) any one entity.  If the Document
+     already includes a cover text for the same cover, previously added
+     by you or by arrangement made by the same entity you are acting on
+     behalf of, you may not add another; but you may replace the old
+     one, on explicit permission from the previous publisher that added
+     the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination all
+     of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice, and that you preserve all
+     their Warranty Disclaimers.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections Entitled
+     "History" in the various original documents, forming one section
+     Entitled "History"; likewise combine any sections Entitled
+     "Acknowledgements", and any sections Entitled "Dedications".  You
+     must delete all sections Entitled "Endorsements."
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the documents
+     in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow this
+     License in all other respects regarding verbatim copying of that
+     document.
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of a
+     storage or distribution medium, is called an "aggregate" if the
+     copyright resulting from the compilation is not used to limit the
+     legal rights of the compilation's users beyond what the individual
+     works permit.  When the Document is included in an aggregate, this
+     License does not apply to the other works in the aggregate which
+     are not themselves derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one half
+     of the entire aggregate, the Document's Cover Texts may be placed
+     on covers that bracket the Document within the aggregate, or the
+     electronic equivalent of covers if the Document is in electronic
+     form.  Otherwise they must appear on printed covers that bracket
+     the whole aggregate.
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License, and all the license notices in the
+     Document, and any Warranty Disclaimers, provided that you also
+     include the original English version of this License and the
+     original versions of those notices and disclaimers.  In case of a
+     disagreement between the translation and the original version of
+     this License or a notice or disclaimer, the original version will
+     prevail.
+
+     If a section in the Document is Entitled "Acknowledgements",
+     "Dedications", or "History", the requirement (section 4) to
+     Preserve its Title (section 1) will typically require changing the
+     actual title.
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided for under this License.  Any other
+     attempt to copy, modify, sublicense or distribute the Document is
+     void, and will automatically terminate your rights under this
+     License.  However, parties who have received copies, or rights,
+     from you under this License will not have their licenses terminated
+     so long as such parties remain in full compliance.
+
+  10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     <http://www.gnu.org/copyleft/>.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License "or any later version" applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If the
+     Document does not specify a version number of this License, you may
+     choose any version ever published (not as a draft) by the Free
+     Software Foundation.
+
+ADDENDUM: How to use this License for your documents
+====================================================
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+       Copyright (C)  YEAR  YOUR NAME.
+       Permission is granted to copy, distribute and/or modify this document
+       under the terms of the GNU Free Documentation License, Version 1.2
+       or any later version published by the Free Software Foundation;
+       with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+       Texts.  A copy of the license is included in the section entitled ``GNU
+       Free Documentation License''.
+
+If you have Invariant Sections, Front-Cover Texts and Back-Cover Texts,
+replace the "with...Texts."  line with this:
+
+         with the Invariant Sections being LIST THEIR TITLES, with
+         the Front-Cover Texts being LIST, and with the Back-Cover Texts
+         being LIST.
+
+If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+
+If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of free
+software license, such as the GNU General Public License, to permit
+their use in free software.
+
+
+File: ick.info,  Node: Main Index,  Prev: Copying,  Up: Top
+
+Index
+*****
+
+This is the index of everything in this manual.  (Note that in some
+versions of the manual this is called 'Main Index' to prevent it
+transforming into a page called 'index.html' in the HTML version of the
+manual.  The complications that that caused were really odd.)
+
+ [index ]
+* Menu:
+
+* ":                                     Grouping Rules.      (line   6)
+* #:                                     Constants and Variables.
+                                                              (line   6)
+* $:                                     Mingle.              (line   6)
+* %:                                     Execution Chance.    (line   6)
+* &:                                     Unary Binary Logic.  (line   6)
+* ':                                     Grouping Rules.      (line   6)
+* +help:                                 Options to Generated Programs.
+                                                              (line  13)
+* +instapipe:                            Options to Generated Programs.
+                                                              (line  37)
+* +mystery:                              Options to Generated Programs.
+                                                              (line  64)
+* +printflow:                            Options to Generated Programs.
+                                                              (line  46)
+* +printflow, enabling:                  Debug Options.       (line  64)
+* +traditional:                          Options to Generated Programs.
+                                                              (line  32)
+* +wimpmode:                             Options to Generated Programs.
+                                                              (line  21)
+* ,:                                     Constants and Variables.
+                                                              (line   6)
+* -@:                                    Other Options.       (line   9)
+* -a:                                    Language-affecting Options.
+                                                              (line  70)
+* -b:                                    Language-affecting Options.
+                                                              (line  17)
+* -C:                                    Language-affecting Options.
+                                                              (line  92)
+* -c:                                    Output Options.      (line  13)
+* -d:                                    Debug Options.       (line  12)
+* -e:                                    Language-affecting Options.
+                                                              (line  43)
+* -E:                                    Language-affecting Options.
+                                                              (line  55)
+* -f:                                    Optimizer Options.   (line  10)
+* -F:                                    Optimizer Options.   (line  17)
+* -g:                                    Debug Options.       (line  19)
+* -h:                                    Debug Options.       (line  29)
+* -H:                                    Debug Options.       (line  29)
+* -help:                                 Options to Generated Programs.
+                                                              (line  13)
+* -hH:                                   Debug Options.       (line  29)
+* -instapipe:                            Options to Generated Programs.
+                                                              (line  37)
+* -l:                                    Debug Options.       (line  40)
+* -m:                                    Language-affecting Options.
+                                                              (line  31)
+* -mystery:                              Options to Generated Programs.
+                                                              (line  64)
+* -o:                                    Output Options.      (line  28)
+* -O:                                    Optimizer Options.   (line  27)
+* -P:                                    Language-affecting Options.
+                                                              (line  97)
+* -p:                                    Debug Options.       (line  48)
+* -printflow:                            Options to Generated Programs.
+                                                              (line  46)
+* -t:                                    Language-affecting Options.
+                                                              (line  65)
+* -traditional:                          Options to Generated Programs.
+                                                              (line  32)
+* -u:                                    Debug Options.       (line  72)
+* -U:                                    Debug Options.       (line  95)
+* -v:                                    Language-affecting Options.
+                                                              (line  79)
+* -w:                                    Debug Options.       (line  64)
+* -wimpmode:                             Options to Generated Programs.
+                                                              (line  21)
+* -X:                                    Language-affecting Options.
+                                                              (line 110)
+* -x:                                    Language-affecting Options.
+                                                              (line 122)
+* -y:                                    Debug Options.       (line  82)
+* -Y:                                    Debug Options.       (line  88)
+* .:                                     Constants and Variables.
+                                                              (line   6)
+* .b98:                                  External Calls to Funge-98.
+                                                              (line   6)
+* .b98, no external library:             Errors.              (line 434)
+* /:                                     Operand Overloading. (line   6)
+* 16 bit overflow:                       Errors.              (line 174)
+* 32 bit overflow:                       Errors.              (line 264)
+* ::                                     Constants and Variables.
+                                                              (line   6)
+* ;:                                     Constants and Variables.
+                                                              (line   6)
+* ?:                                     Unary Binary Logic.  (line   6)
+* @:                                     TriINTERCAL.         (line   6)
+* ^:                                     TriINTERCAL.         (line   6)
+* About this manual:                     About this manual.   (line   6)
+* ABSTAIN:                               ABSTAIN and REINSTATE.
+                                                              (line   6)
+* abstain, at program start:             Statement Identifiers.
+                                                              (line   6)
+* abstain, during execution:             ABSTAIN and REINSTATE.
+                                                              (line   6)
+* 'ABSTAIN', nonexistent target:         Errors.              (line  88)
+* ABSTAIN, self-abstaining:              ONCE and AGAIN.      (line   6)
+* abstained state:                       Statement Identifiers.
+                                                              (line   6)
+* ABSTAINING:                            ABSTAIN and REINSTATE.
+                                                              (line   6)
+* add-without-carry:                     TriINTERCAL.         (line   6)
+* AGAIN:                                 ONCE and AGAIN.      (line   6)
+* alloca:                                External Calls and auto.
+                                                              (line   6)
+* ampersand:                             Unary Binary Logic.  (line   6)
+* and:                                   Unary Binary Logic.  (line   6)
+* and16:                                 OIL Patterns.        (line 117)
+* and32:                                 OIL Patterns.        (line 117)
+* Arabic numberals, enabling:            Options to Generated Programs.
+                                                              (line  21)
+* array, invalid dimension:              Errors.              (line 139)
+* array, out of bounds:                  Errors.              (line 146)
+* array, wrong dimension:                Errors.              (line 146)
+* arrays, dimensioning:                  Calculate.           (line   6)
+* arrays, subscripting:                  Array Subscript.     (line   6)
+* assigning to constants:                Language-affecting Options.
+                                                              (line  79)
+* assignment:                            Calculate.           (line   6)
+* Atari compiler:                        Differences to Other Compilers.
+                                                              (line  29)
+* Atari syntax:                          Princeton and Atari Syntax.
+                                                              (line  38)
+* Atari, character set:                  Character Sets.      (line   6)
+* auto:                                  External Calls and auto.
+                                                              (line   6)
+* backtracking:                          Backtracking.        (line   6)
+* Backtracking INTERCAL:                 Multithreading and Backtracking.
+                                                              (line   6)
+* backtracking, debugging:               Options to Generated Programs.
+                                                              (line  46)
+* backtracking, enabling:                Language-affecting Options.
+                                                              (line  31)
+* backtracking, not enabled:             Errors.              (line 239)
+* backtracking, out of memory:           Errors.              (line 448)
+* Baudot:                                CLC-INTERCAL I/O.    (line   6)
+* Baudot <1>:                            Character Sets.      (line   6)
+* Befunge:                               External Calls to Funge-98.
+                                                              (line   6)
+* Befunge, fingerprint:                  The IFFI Fingerprint.
+                                                              (line   6)
+* Befunge, installing:                   Creating the Funge-98 Library.
+                                                              (line   6)
+* Befunge, marker:                       The IFFI Fingerprint.
+                                                              (line  40)
+* Befunge, no external library:          Errors.              (line 434)
+* black lagoon:                          Errors.              (line  49)
+* blocks, labeled:                       ick_labeledblock.    (line   6)
+* book:                                  Unary Binary Logic.  (line   6)
+* breakpoints, too many:                 Errors.              (line 419)
+* buffer overflow:                       Errors.              (line 276)
+* bugs, reporting:                       Reporting Bugs.      (line   6)
+* BUT:                                   TriINTERCAL.         (line   6)
+* c:                                     OIL Patterns.        (line  64)
+* C:                                     External Calls to C. (line   6)
+* C code, debugging:                     Debug Options.       (line  19)
+* C code, leaving in place:              Debug Options.       (line  19)
+* C, auto/alloca:                        External Calls and auto.
+                                                              (line   6)
+* C, CREATE:                             ick_create.          (line   6)
+* C, external call infrastructure:       External C Call Infrastructure.
+                                                              (line   6)
+* C, stopping after C is generated:      Output Options.      (line  13)
+* C, system library:                     Expansion Libraries. (line  40)
+* C, within OIL:                         OIL Patterns.        (line  62)
+* C-INTERCAL, distributing:              Distributing.        (line   6)
+* C-INTERCAL, I/O:                       C-INTERCAL I/O.      (line   6)
+* C-INTERCAL, obtaining a copy:          Obtaining.           (line   6)
+* C-INTERCAL, unpacking:                 Unpacking.           (line   6)
+* C-INTERCAL, unzipping:                 Unpacking.           (line   6)
+* c1--c9:                                OIL Patterns.        (line  64)
+* C11:                                   Miscellaneous External Calls.
+                                                              (line   6)
+* C99:                                   Miscellaneous External Calls.
+                                                              (line   6)
+* calculate:                             Calculate.           (line   6)
+* CALCULATING:                           Calculate.           (line   6)
+* calls, external:                       External Calls.      (line   6)
+* character sets:                        Princeton and Atari Syntax.
+                                                              (line   6)
+* character sets <1>:                    Character Sets.      (line   6)
+* character sets, converting:            convickt.            (line   6)
+* choicepoints:                          Backtracking.        (line   6)
+* choicepoints, activating:              Backtracking.        (line  44)
+* choicepoints, creating:                Backtracking.        (line  26)
+* choicepoints, discarding:              Backtracking.        (line  80)
+* CLC-INTERCAL:                          Differences to Other Compilers.
+                                                              (line  52)
+* CLC-INTERCAL compatibility mode:       Language-affecting Options.
+                                                              (line 122)
+* CLC-INTERCAL I/O:                      CLC-INTERCAL I/O.    (line   6)
+* clockface mode:                        Language-affecting Options.
+                                                              (line  92)
+* code generation, stopping at C code:   Output Options.      (line  13)
+* COME FROM:                             COME FROM and NEXT FROM.
+                                                              (line   6)
+* 'COME FROM', ambiguity:                Errors.              (line 286)
+* COME FROM, in C:                       ick_comefrom and ick_nextfrom.
+                                                              (line   6)
+* COME FROM, in Funge:                   The IFFI Fingerprint.
+                                                              (line  79)
+* 'COME FROM', multithreading:           Multithreading using COME FROM.
+                                                              (line   6)
+* 'COME FROM', no target:                Errors.              (line 255)
+* command line options:                  Invoking ick.        (line   6)
+* command line, showing intermediates:   Debug Options.       (line  88)
+* COMMENT:                               Syntax Error.        (line   6)
+* comment:                               Syntax Error.        (line   6)
+* COMMENTING:                            Syntax Error.        (line   6)
+* COMMENTS:                              Syntax Error.        (line   6)
+* comments, OIL:                         OIL Syntax.          (line  13)
+* compatibility, CLC-INTERCAL:           Language-affecting Options.
+                                                              (line 122)
+* compatibility, INTERCAL-72:            Language-affecting Options.
+                                                              (line  65)
+* compiling, 'ick' itself:               Simple Installation. (line   6)
+* compiling, INTERCAL source code:       Invoking ick.        (line   6)
+* compunex:                              Expansion Libraries. (line  57)
+* computed NEXT:                         Expansion Libraries. (line  57)
+* config.sh:                             Simple Installation. (line   6)
+* configuring:                           Simple Installation. (line   6)
+* connected threads:                     Multithreading using WHILE.
+                                                              (line   6)
+* constant:                              Constants and Variables.
+                                                              (line   6)
+* constant, twospot:                     Errors.              (line  19)
+* constants, assigning to:               Language-affecting Options.
+                                                              (line  79)
+* controlled unary operator:             TriINTERCAL.         (line   6)
+* converting between character sets:     convickt.            (line   6)
+* convickt:                              convickt.            (line   6)
+* copying conditions:                    Copying.             (line   6)
+* copyright:                             Copying.             (line   6)
+* CREATE:                                CREATE.              (line   6)
+* CREATE, enabling:                      Language-affecting Options.
+                                                              (line  70)
+* CREATE, in C:                          ick_create.          (line   6)
+* CREATE, in Funge:                      The IFFI Fingerprint.
+                                                              (line  67)
+* CREATE, operators:                     CREATE.              (line  82)
+* CREATE, signatures:                    ick_create.          (line  43)
+* creating syntax:                       CREATE.              (line   6)
+* Debian:                                Simple Installation. (line  92)
+* debug options:                         Debug Options.       (line   6)
+* debugging, C code:                     Debug Options.       (line  19)
+* debugging, flow:                       Options to Generated Programs.
+                                                              (line  46)
+* debugging, internal errors:            Debug Options.       (line  95)
+* debugging, lexical analyser:           Debug Options.       (line  12)
+* debugging, multithreaded programs:     Options to Generated Programs.
+                                                              (line  46)
+* debugging, OIL:                        Debug Options.       (line  29)
+* debugging, optimizer:                  Debug Options.       (line  29)
+* debugging, parser:                     Debug Options.       (line  12)
+* debugging, runtime:                    The yuk debugger.    (line   6)
+* debugging, yuk:                        The yuk debugger.    (line   6)
+* dialect options:                       Language-affecting Options.
+                                                              (line   6)
+* dialects of syntax:                    Princeton and Atari Syntax.
+                                                              (line   6)
+* dimensioning arrays:                   Calculate.           (line   6)
+* directory problems:                    Debug Options.       (line  72)
+* directory problems, source file:       Errors.              (line 385)
+* distributing C-INTERCAL:               Distributing.        (line   6)
+* DJGPP:                                 Installation on DOS. (line   6)
+* DO:                                    Statement Identifiers.
+                                                              (line   6)
+* dormant thread:                        Backtracking.        (line   6)
+* DOS:                                   Installation on DOS. (line   6)
+* double-oh-seven:                       Execution Chance.    (line   6)
+* dumping core on error:                 Debug Options.       (line  95)
+* duplicate line label:                  Errors.              (line  95)
+* E000:                                  Errors.              (line  10)
+* E017:                                  Errors.              (line  19)
+* E079:                                  Errors.              (line  25)
+* E099:                                  Errors.              (line  33)
+* E111:                                  Errors.              (line  40)
+* E123:                                  Errors.              (line  49)
+* E127:                                  Errors.              (line  62)
+* E127, debugging:                       Debug Options.       (line  72)
+* E129:                                  Errors.              (line  74)
+* E139:                                  Errors.              (line  88)
+* E182:                                  Errors.              (line  95)
+* E197:                                  Errors.              (line 108)
+* E200:                                  Errors.              (line 115)
+* E222:                                  Errors.              (line 126)
+* E240:                                  Errors.              (line 139)
+* E241:                                  Errors.              (line 146)
+* E252:                                  Errors.              (line 156)
+* E256:                                  Errors.              (line 163)
+* E256, avoiding:                        Language-affecting Options.
+                                                              (line  97)
+* E275:                                  Errors.              (line 174)
+* E277:                                  Errors.              (line 185)
+* E281:                                  Errors.              (line 202)
+* E333:                                  Errors.              (line 213)
+* E345:                                  Errors.              (line 221)
+* E404:                                  Errors.              (line 230)
+* E405:                                  Errors.              (line 239)
+* E436:                                  Errors.              (line 249)
+* E444:                                  Errors.              (line 255)
+* E533:                                  Errors.              (line 264)
+* E553:                                  Errors.              (line 276)
+* E555:                                  Errors.              (line 286)
+* E562:                                  Errors.              (line 298)
+* E579:                                  Errors.              (line 308)
+* E621:                                  Errors.              (line 317)
+* E632:                                  Errors.              (line 326)
+* E633:                                  Errors.              (line 334)
+* E652:                                  Errors.              (line 348)
+* E652, avoiding:                        Language-affecting Options.
+                                                              (line  97)
+* E666:                                  Errors.              (line 358)
+* E774:                                  Errors.              (line 372)
+* E774, disabling:                       Language-affecting Options.
+                                                              (line  17)
+* E777:                                  Errors.              (line 385)
+* E778:                                  Errors.              (line 392)
+* E778, debugging:                       Debug Options.       (line  95)
+* E810:                                  Errors.              (line 412)
+* E811:                                  Errors.              (line 419)
+* E888:                                  Errors.              (line 426)
+* E899:                                  Errors.              (line 433)
+* E990:                                  Errors.              (line 442)
+* E991:                                  Errors.              (line 448)
+* E993:                                  Errors.              (line 458)
+* E994:                                  Errors.              (line 466)
+* E995:                                  Errors.              (line 474)
+* E997:                                  Errors.              (line 482)
+* E998:                                  Errors.              (line 492)
+* E999:                                  Errors.              (line 501)
+* E999, debugging:                       Debug Options.       (line  72)
+* ears:                                  Grouping Rules.      (line   6)
+* ears, nesting limit:                   Errors.              (line 202)
+* EBCDIC:                                Character Sets.      (line   6)
+* embedded systems:                      PIC-INTERCAL.        (line   6)
+* end of file:                           Errors.              (line 298)
+* environment variables:                 Environment Variables.
+                                                              (line   6)
+* EOF:                                   Errors.              (line 298)
+* errors:                                Errors.              (line   6)
+* errors and warnings:                   Errors and Warnings. (line   6)
+* examples, OIL:                         OIL Example.         (line   6)
+* exclusive or:                          Unary Binary Logic.  (line   6)
+* execution chance:                      Execution Chance.    (line   6)
+* exiting:                               GIVE UP.             (line   6)
+* exor:                                  Unary Binary Logic.  (line   6)
+* expansion libraries:                   Expansion Libraries. (line   6)
+* expressions:                           Expressions.         (line   6)
+* expressions, OIL:                      OIL Expressions.     (line   6)
+* external calls:                        External Calls.      (line   6)
+* external calls, and auto:              External Calls and auto.
+                                                              (line   6)
+* external calls, Befunge:               External Calls to Funge-98.
+                                                              (line   6)
+* external calls, C infrastructure:      External C Call Infrastructure.
+                                                              (line   6)
+* external calls, C11:                   Miscellaneous External Calls.
+                                                              (line   6)
+* external calls, C99:                   Miscellaneous External Calls.
+                                                              (line   6)
+* external calls, debugging:             Debug Options.       (line  88)
+* external calls, enabling:              Language-affecting Options.
+                                                              (line  43)
+* external calls, from Funge's view:     The IFFI Fingerprint.
+                                                              (line   6)
+* external calls, Funge:                 External Calls to Funge-98.
+                                                              (line   6)
+* external calls, libraries:             Miscellaneous External Calls.
+                                                              (line   6)
+* external calls, miscellaneous:         Miscellaneous External Calls.
+                                                              (line   6)
+* external calls, to C:                  External Calls to C. (line   6)
+* external calls, using:                 Using External Calls.
+                                                              (line   6)
+* external libraries, unavailable:       Errors.              (line 434)
+* extreme optimization:                  Optimizer Options.   (line  17)
+* FDL:                                   GNU Free Documentation License.
+                                                              (line   6)
+* file type, unsupported:                Errors.              (line 492)
+* fingerprint:                           The IFFI Fingerprint.
+                                                              (line   6)
+* floatlib:                              floatlib.            (line   6)
+* flow control, INTERCAL-72:             NEXT FORGET and RESUME.
+                                                              (line   6)
+* flow optimization:                     Optimizer Options.   (line  10)
+* flow, printing:                        Options to Generated Programs.
+                                                              (line  46)
+* flushing:                              Options to Generated Programs.
+                                                              (line  37)
+* foreign functions:                     External Calls.      (line   6)
+* FORGET:                                NEXT FORGET and RESUME.
+                                                              (line   6)
+* FORGET, in C:                          ick_forget.          (line   6)
+* FORGET, in Funge:                      The IFFI Fingerprint.
+                                                              (line 116)
+* FORGETTING:                            NEXT FORGET and RESUME.
+                                                              (line   6)
+* Free Documentation License:            GNU Free Documentation License.
+                                                              (line   6)
+* functions, OIL in C:                   OIL Patterns.        (line  62)
+* Funge:                                 External Calls to Funge-98.
+                                                              (line   6)
+* Funge, fingerprint:                    The IFFI Fingerprint.
+                                                              (line   6)
+* Funge, installing:                     Creating the Funge-98 Library.
+                                                              (line   6)
+* Funge, marker:                         The IFFI Fingerprint.
+                                                              (line  40)
+* Funge, no external library:            Errors.              (line 434)
+* generated programs, options:           Options to Generated Programs.
+                                                              (line   6)
+* GFDL:                                  GNU Free Documentation License.
+                                                              (line   6)
+* GIVE UP:                               GIVE UP.             (line   6)
+* GNU Free Documentation License:        GNU Free Documentation License.
+                                                              (line   6)
+* GO AHEAD:                              Backtracking.        (line  80)
+* 'GO AHEAD', no choicepoint:            Errors.              (line 230)
+* 'GO AHEAD', not enabled:               Errors.              (line 239)
+* GO BACK:                               Backtracking.        (line  44)
+* 'GO BACK', no choicepoint:             Errors.              (line 230)
+* 'GO BACK', not enabled:                Errors.              (line 239)
+* goto, time-reversed:                   COME FROM and NEXT FROM.
+                                                              (line   6)
+* grouping rules:                        Grouping Rules.      (line   6)
+* help with options:                     Other Options.       (line   9)
+* hybrid:                                Constants and Variables.
+                                                              (line   6)
+* I/O:                                   READ OUT and WRITE IN.
+                                                              (line   6)
+* I/O, Baudot:                           CLC-INTERCAL I/O.    (line   6)
+* I/O, C-INTERCAL:                       C-INTERCAL I/O.      (line   6)
+* I/O, CLC-INTERCAL:                     CLC-INTERCAL I/O.    (line   6)
+* I/O, INTERCAL-72:                      INTERCAL-72 I/O.     (line   6)
+* I/O, out of memory:                    Errors.              (line 156)
+* I/O, PIC-INTERCAL:                     PIC-INTERCAL.        (line  55)
+* 'ick', command line options:           Invoking ick.        (line   6)
+* 'ick', errors:                         Errors.              (line   6)
+* 'ick', errors and warnings:            Errors and Warnings. (line   6)
+* 'ick', installing:                     Installation.        (line   6)
+* 'ick', invoking:                       Invoking ick.        (line   6)
+* 'ick', options:                        Invoking ick.        (line   6)
+* 'ick', uninstalling:                   Uninstalling.        (line   6)
+* 'ick', warnings:                       Warnings.            (line   6)
+* ick-0-29.pax.*:                        Unpacking.           (line   6)
+* ick_comefrom:                          ick_comefrom and ick_nextfrom.
+                                                              (line   6)
+* ick_comefromif:                        ick_comefrom and ick_nextfrom.
+                                                              (line  28)
+* ick_ec.h:                              External C Call Infrastructure.
+                                                              (line  11)
+* ICK_EC_FUNC_END:                       External C Call Infrastructure.
+                                                              (line  25)
+* ICK_EC_FUNC_START:                     External C Call Infrastructure.
+                                                              (line  25)
+* ick_forget:                            ick_forget.          (line   6)
+* ick_getonespot:                        ick_get/setone/twospot.
+                                                              (line   6)
+* ick_gettwospot:                        ick_get/setone/twospot.
+                                                              (line   6)
+* ick_labeledblock:                      ick_labeledblock.    (line   6)
+* ick_linelabel:                         ick_linelabel.       (line   6)
+* ick_next:                              ick_next.            (line   6)
+* ick_nextfrom:                          ick_comefrom and ick_nextfrom.
+                                                              (line   6)
+* ick_nextfromif:                        ick_comefrom and ick_nextfrom.
+                                                              (line  28)
+* ick_resume:                            ick_resume.          (line   6)
+* ick_return_or_resume:                  ick_resume.          (line  18)
+* ick_setonespot:                        ick_get/setone/twospot.
+                                                              (line   6)
+* ick_settwospot:                        ick_get/setone/twospot.
+                                                              (line   6)
+* ick_startup:                           ick_startup.         (line   6)
+* idiom:                                 OIL Syntax.          (line  48)
+* idiom optimization:                    Optimizer Options.   (line  27)
+* 'idiotism.oil':                        OIL Basics.          (line   6)
+* IFFI:                                  The IFFI Fingerprint.
+                                                              (line   6)
+* IFFI, commands:                        The IFFI Fingerprint.
+                                                              (line  65)
+* IGNORE:                                IGNORE and REMEMBER. (line   6)
+* 'IGNORE'/'RETRIEVE' interaction:       STASH and RETRIEVE.  (line  34)
+* IGNORING:                              IGNORE and REMEMBER. (line   6)
+* ignorret test:                         STASH and RETRIEVE.  (line  34)
+* illegal array dimension:               Errors.              (line 139)
+* illegal line label value:              Errors.              (line 108)
+* illegal opcode:                        Errors.              (line 466)
+* illegal variable number:               Errors.              (line 115)
+* impossible reverse assignment:         Errors.              (line 185)
+* initial abstention:                    Statement Identifiers.
+                                                              (line   6)
+* input:                                 READ OUT and WRITE IN.
+                                                              (line   6)
+* input, C-INTERCAL:                     C-INTERCAL I/O.      (line   6)
+* input, CLC-INTERCAL:                   CLC-INTERCAL I/O.    (line   6)
+* input, EOF:                            Errors.              (line 298)
+* input, in Arabic numerals:             Options to Generated Programs.
+                                                              (line  21)
+* input, INTERCAL-72:                    INTERCAL-72 I/O.     (line   6)
+* input, invalid:                        Errors.              (line 308)
+* installation:                          Installation.        (line   6)
+* installation, Debian:                  Simple Installation. (line  92)
+* installation, simple:                  Simple Installation. (line   6)
+* installation, Ubuntu:                  Simple Installation. (line  92)
+* installation, via autoconf and make:   Simple Installation. (line   6)
+* installing, DOS:                       Installation on DOS. (line   6)
+* INTERCAL compilers:                    Differences to Other Compilers.
+                                                              (line   6)
+* INTERCAL, syntax:                      Syntax.              (line   6)
+* INTERCAL-72 compatibility mode:        Language-affecting Options.
+                                                              (line  65)
+* INTERCAL-72, I/O:                      INTERCAL-72 I/O.     (line   6)
+* interleave:                            Mingle.              (line   6)
+* internal errors:                       Errors.              (line 392)
+* internal errors, debugging:            Debug Options.       (line  95)
+* internal errors, dumping core:         Debug Options.       (line  95)
+* invalid array dimension:               Errors.              (line 139)
+* invalid line label value:              Errors.              (line 108)
+* invalid variable number:               Errors.              (line 115)
+* invocation flag, unnown:               Errors.              (line 442)
+* iselect:                               OIL Patterns.        (line 117)
+* J-INTERCAL:                            Differences to Other Compilers.
+                                                              (line  39)
+* labeled blocks:                        ick_labeledblock.    (line   6)
+* language-affecting options:            Language-affecting Options.
+                                                              (line   6)
+* Latin-1:                               Character Sets.      (line   6)
+* lexical analyser, debugging:           Debug Options.       (line  12)
+* libick_ecto_b98.a:                     Creating the Funge-98 Library.
+                                                              (line   6)
+* libraries:                             Expansion Libraries. (line   6)
+* libraries, Befunge:                    Creating the Funge-98 Library.
+                                                              (line   6)
+* libraries, external calls:             Miscellaneous External Calls.
+                                                              (line   6)
+* libraries, Funge:                      Creating the Funge-98 Library.
+                                                              (line   6)
+* line label:                            Line Labels.         (line   6)
+* line label, duplicate:                 Errors.              (line  95)
+* line label, illegal value:             Errors.              (line 108)
+* line label, in Funge:                  The IFFI Fingerprint.
+                                                              (line 130)
+* line labels, C:                        ick_linelabel.       (line   6)
+* line number:                           Line Labels.         (line   6)
+* line too long:                         Errors.              (line 358)
+* loops, entire program:                 TRY AGAIN.           (line   6)
+* loops, OIL:                            OIL Loops.           (line   6)
+* make:                                  Simple Installation. (line   6)
+* make install:                          Simple Installation. (line   6)
+* marker:                                The IFFI Fingerprint.
+                                                              (line  40)
+* MAXTOFREE:                             OIL Tips.            (line   8)
+* MAYBE:                                 Backtracking.        (line  26)
+* 'MAYBE', not enabled:                  Errors.              (line 239)
+* mesh:                                  Constants and Variables.
+                                                              (line   6)
+* microcontrollers:                      PIC-INTERCAL.        (line   6)
+* mingle:                                OIL Patterns.        (line 117)
+* mingle <1>:                            Mingle.              (line   6)
+* miscellaneous external calls:          Miscellaneous External Calls.
+                                                              (line   6)
+* multithreading:                        Multithreading and Backtracking.
+                                                              (line   6)
+* multithreading, connected threads:     Multithreading using WHILE.
+                                                              (line   6)
+* multithreading, debugging:             Options to Generated Programs.
+                                                              (line  46)
+* multithreading, enabling:              Language-affecting Options.
+                                                              (line  31)
+* multithreading, not enabled:           Errors.              (line 239)
+* multithreading, out of memory:         Errors.              (line 448)
+* multithreading, separate threads:      Multithreading using COME FROM.
+                                                              (line   6)
+* N'T:                                   Statement Identifiers.
+                                                              (line   6)
+* nesting limit:                         Errors.              (line 202)
+* NEXT:                                  NEXT FORGET and RESUME.
+                                                              (line   6)
+* NEXT FROM:                             COME FROM and NEXT FROM.
+                                                              (line   6)
+* NEXT FROM, in C:                       ick_comefrom and ick_nextfrom.
+                                                              (line   6)
+* NEXT FROM, in Funge:                   The IFFI Fingerprint.
+                                                              (line 193)
+* 'NEXT FROM', multithreading:           Multithreading using COME FROM.
+                                                              (line   6)
+* 'NEXT FROM', no target:                Errors.              (line 255)
+* NEXT stack:                            NEXT FORGET and RESUME.
+                                                              (line   6)
+* NEXT, computed:                        Expansion Libraries. (line  57)
+* NEXT, in C:                            ick_next.            (line   6)
+* NEXT, in Funge:                        The IFFI Fingerprint.
+                                                              (line 157)
+* 'NEXT', nonexistent target:            Errors.              (line  74)
+* 'NEXT', stack overflow:                Errors.              (line  49)
+* NEXTING:                               NEXT FORGET and RESUME.
+                                                              (line   6)
+* no source file:                        Errors.              (line 385)
+* non-INTERCAL-72 warning:               Warnings.            (line  32)
+* NOT:                                   Statement Identifiers.
+                                                              (line   6)
+* obtaining C-INTERCAL:                  Obtaining.           (line   6)
+* OIL:                                   Optimizer Idiom Language.
+                                                              (line   6)
+* OIL, basics:                           OIL Basics.          (line   6)
+* OIL, comments:                         OIL Syntax.          (line  13)
+* OIL, debugging:                        Debug Options.       (line  29)
+* OIL, example:                          OIL Example.         (line   6)
+* OIL, execution:                        OIL Basics.          (line   6)
+* OIL, expressions:                      OIL Expressions.     (line   6)
+* OIL, functions in C:                   OIL Patterns.        (line  62)
+* OIL, idiom groups:                     OIL Syntax.          (line  29)
+* OIL, idioms:                           OIL Syntax.          (line  48)
+* OIL, loops:                            OIL Loops.           (line   6)
+* OIL, operators:                        OIL Expressions.     (line  19)
+* OIL, optimizing code:                  Optimizer Options.   (line  27)
+* OIL, patterns:                         OIL Patterns.        (line   6)
+* OIL, replacements:                     OIL Replacements.    (line   6)
+* OIL, syntax:                           OIL Syntax.          (line   6)
+* OIL, tips:                             OIL Tips.            (line   6)
+* ONCE:                                  ONCE and AGAIN.      (line   6)
+* onespot:                               Constants and Variables.
+                                                              (line   6)
+* onespot overflow:                      Errors.              (line 174)
+* onespot, overflow warning:             Warnings.            (line  53)
+* operand overloading:                   Operand Overloading. (line   6)
+* operand overloading, impossible:       Errors.              (line 185)
+* operands, OIL, in patterns:            OIL Patterns.        (line  20)
+* operands, OIL, in replacements:        OIL Replacements.    (line  35)
+* operator:                              Operators.           (line   6)
+* operators, OIL:                        OIL Expressions.     (line  19)
+* optimization:                          Optimizer Options.   (line   6)
+* optimization, control flow:            Optimizer Options.   (line  10)
+* optimization, extreme:                 Optimizer Options.   (line  17)
+* optimization, flow:                    Optimizer Options.   (line  10)
+* optimization, idioms:                  Optimizer Options.   (line  27)
+* optimization, OIL:                     Optimizer Options.   (line  27)
+* Optimizer Idiom Language:              Optimizer Idiom Language.
+                                                              (line   6)
+* optimizer options:                     Optimizer Options.   (line   6)
+* optimizer, debugging:                  Debug Options.       (line  29)
+* options, debug:                        Debug Options.       (line   6)
+* options, dialect:                      Language-affecting Options.
+                                                              (line   6)
+* options, help:                         Other Options.       (line   9)
+* options, language-affecting:           Language-affecting Options.
+                                                              (line   6)
+* options, optimizer:                    Optimizer Options.   (line   6)
+* options, other:                        Other Options.       (line   6)
+* options, output:                       Output Options.      (line   6)
+* options, to generated programs:        Options to Generated Programs.
+                                                              (line   6)
+* options, to 'ick':                     Invoking ick.        (line   6)
+* or:                                    Unary Binary Logic.  (line   6)
+* or16:                                  OIL Patterns.        (line 117)
+* or32:                                  OIL Patterns.        (line 117)
+* other languages:                       External Calls.      (line   6)
+* other languages, C:                    External Calls to C. (line   6)
+* other options:                         Other Options.       (line   6)
+* out of bounds:                         Errors.              (line 146)
+* out of memory:                         Errors.              (line 221)
+* out of memory, backtracking:           Errors.              (line 448)
+* out of memory, during compile:         Errors.              (line 358)
+* out of memory, during 'STASH':         Errors.              (line 126)
+* out of memory, I/O:                    Errors.              (line 156)
+* out of memory, multithreading:         Errors.              (line 448)
+* output:                                READ OUT and WRITE IN.
+                                                              (line   6)
+* output file, failure to write:         Errors.              (line 427)
+* output options:                        Output Options.      (line   6)
+* output, C only:                        Output Options.      (line  13)
+* output, C-INTERCAL:                    C-INTERCAL I/O.      (line   6)
+* output, CLC-INTERCAL:                  CLC-INTERCAL I/O.    (line   6)
+* output, flushing:                      Options to Generated Programs.
+                                                              (line  37)
+* output, in Arabic numerals:            Options to Generated Programs.
+                                                              (line  21)
+* output, INTERCAL-72:                   INTERCAL-72 I/O.     (line   6)
+* output, to standard output:            Output Options.      (line  28)
+* overflow, in constant:                 Errors.              (line  19)
+* overflow, over 16 bits:                Errors.              (line 174)
+* overflow, over 32 bits:                Errors.              (line 264)
+* overflow, over onespot:                Errors.              (line 174)
+* overflow, over twospot:                Errors.              (line 264)
+* overflow, warning:                     Warnings.            (line  53)
+* parser, debugging:                     Debug Options.       (line  12)
+* patches, submitting:                   Reporting Bugs.      (line   6)
+* patterns:                              OIL Patterns.        (line   6)
+* patterns, operands:                    OIL Patterns.        (line  20)
+* PIC-INTERCAL:                          PIC-INTERCAL.        (line   6)
+* PIC-INTERCAL, command line option:     Language-affecting Options.
+                                                              (line  97)
+* PIC-INTERCAL, unsupported command:     Errors.              (line 163)
+* PIN:                                   PIC-INTERCAL.        (line  55)
+* 'PIN', in a non-PIC program:           Errors.              (line 348)
+* PLEASE:                                Statement Identifiers.
+                                                              (line   6)
+* 'PLEASE', proportion required:         Errors.              (line  25)
+* politesse:                             Errors.              (line  25)
+* portability, unary operators:          Warnings.            (line  93)
+* positional precedence:                 Grouping Rules.      (line   6)
+* Princeton compiler:                    Differences to Other Compilers.
+                                                              (line  11)
+* Princeton syntax:                      Princeton and Atari Syntax.
+                                                              (line  11)
+* Princeton syntax, option:              Language-affecting Options.
+                                                              (line 110)
+* printflow, enabling:                   Debug Options.       (line  64)
+* profiling:                             Debug Options.       (line  48)
+* quitting:                              GIVE UP.             (line   6)
+* r:                                     OIL Patterns.        (line 103)
+* rabbit-ears:                           Grouping Rules.      (line   6)
+* rabbit-ears, nesting limit:            Errors.              (line 202)
+* random bug:                            Language-affecting Options.
+                                                              (line  17)
+* random bug, error message:             Errors.              (line 372)
+* READ OUT:                              READ OUT and WRITE IN.
+                                                              (line   6)
+* read-only variables:                   IGNORE and REMEMBER. (line   6)
+* read-write variables:                  IGNORE and REMEMBER. (line   6)
+* READING OUT:                           READ OUT and WRITE IN.
+                                                              (line   6)
+* REINSTATE:                             ABSTAIN and REINSTATE.
+                                                              (line   6)
+* reinstate, at program start:           Statement Identifiers.
+                                                              (line   6)
+* reinstate, during execution:           ABSTAIN and REINSTATE.
+                                                              (line   6)
+* REINSTATE, self-reinstating:           ONCE and AGAIN.      (line   6)
+* reinstated state:                      Statement Identifiers.
+                                                              (line   6)
+* REINSTATING:                           ABSTAIN and REINSTATE.
+                                                              (line   6)
+* 'REINTSTATE', nonexistent target:      Errors.              (line  88)
+* releasing C-INTERCAL:                  Distributing.        (line   6)
+* REMEMBER:                              IGNORE and REMEMBER. (line   6)
+* REMEMBERING:                           IGNORE and REMEMBER. (line   6)
+* replacements:                          OIL Replacements.    (line   6)
+* replacements, operands:                OIL Replacements.    (line  35)
+* reporting bugs:                        Reporting Bugs.      (line   6)
+* RESUME:                                NEXT FORGET and RESUME.
+                                                              (line   6)
+* 'RESUME', by 0:                        Errors.              (line 317)
+* RESUME, in C:                          ick_resume.          (line   6)
+* RESUME, in Funge:                      The IFFI Fingerprint.
+                                                              (line 164)
+* RESUMING:                              NEXT FORGET and RESUME.
+                                                              (line   6)
+* RETRIEVE:                              STASH and RETRIEVE.  (line   6)
+* 'RETRIEVE', without stashing:          Errors.              (line 249)
+* 'RETRIEVE'/'IGNORE' interaction:       STASH and RETRIEVE.  (line  34)
+* RETRIEVING:                            STASH and RETRIEVE.  (line   6)
+* reverse assignment:                    Operand Overloading. (line   6)
+* reverse assignment, error:             Errors.              (line 185)
+* reverse assignment, impossible:        Errors.              (line 185)
+* reverse goto:                          COME FROM and NEXT FROM.
+                                                              (line   6)
+* Roman numerals:                        INTERCAL-72 I/O.     (line   6)
+* Roman numerals, disabling:             Options to Generated Programs.
+                                                              (line  21)
+* runtime debugger:                      The yuk debugger.    (line   6)
+* self-abstaining:                       ONCE and AGAIN.      (line   6)
+* self-reinstating:                      ONCE and AGAIN.      (line   6)
+* SENESTMAX:                             Errors.              (line 202)
+* separate threads:                      Multithreading using COME FROM.
+                                                              (line   6)
+* setbitcount:                           OIL Patterns.        (line 137)
+* sharkfin:                              TriINTERCAL.         (line   6)
+* sharkfin, in base 2:                   Errors.              (line 482)
+* signatures:                            ick_create.          (line  43)
+* simple installation:                   Simple Installation. (line   6)
+* skeleton file, directory problems:     Debug Options.       (line  72)
+* skeleton file, errors:                 Errors.              (line 501)
+* slat:                                  Operand Overloading. (line   6)
+* smudgeleft:                            OIL Patterns.        (line 145)
+* smudgeright:                           OIL Patterns.        (line 145)
+* spark:                                 Grouping Rules.      (line   6)
+* spark, nesting limit:                  Errors.              (line 202)
+* 'src/idiotism.oil':                    OIL Basics.          (line   6)
+* stack overflow:                        Errors.              (line  49)
+* stack, instruction pointer:            NEXT FORGET and RESUME.
+                                                              (line   6)
+* stack, NEXT:                           NEXT FORGET and RESUME.
+                                                              (line   6)
+* stack, variable:                       STASH and RETRIEVE.  (line   6)
+* standard output:                       Output Options.      (line  28)
+* startup code, C:                       ick_startup.         (line   6)
+* STASH:                                 STASH and RETRIEVE.  (line   6)
+* stash failure:                         Errors.              (line 249)
+* stashes:                               STASH and RETRIEVE.  (line   6)
+* STASHING:                              STASH and RETRIEVE.  (line   6)
+* statement identifier:                  Statement Identifiers.
+                                                              (line   6)
+* statements:                            Statements.          (line   6)
+* statements, INTERCAL:                  Statements.          (line   6)
+* SUB:                                   Array Subscript.     (line   6)
+* submitting patches:                    Reporting Bugs.      (line   6)
+* subscripts:                            Array Subscript.     (line   6)
+* subtract-without-borrow:               TriINTERCAL.         (line   6)
+* syntax error:                          Errors.              (line  10)
+* syntax error <1>:                      Syntax Error.        (line   6)
+* syntax, Atari:                         Princeton and Atari Syntax.
+                                                              (line  38)
+* syntax, creating:                      CREATE.              (line   6)
+* syntax, dialects:                      Princeton and Atari Syntax.
+                                                              (line   6)
+* syntax, INTERCAL:                      Syntax.              (line   6)
+* syntax, of OIL:                        OIL Syntax.          (line   6)
+* syntax, Princeton:                     Language-affecting Options.
+                                                              (line 110)
+* syntax, Princeton <1>:                 Princeton and Atari Syntax.
+                                                              (line  11)
+* syslib:                                syslib.              (line   6)
+* syslib, directory problems:            Debug Options.       (line  72)
+* syslib, errors:                        Errors.              (line  62)
+* syslibc:                               Expansion Libraries. (line  40)
+* system libraries:                      System Libraries.    (line   6)
+* system library, directory problems:    Debug Options.       (line  72)
+* system library, disabling:             Language-affecting Options.
+                                                              (line  55)
+* system library, errors:                Errors.              (line  62)
+* system library, in C:                  Expansion Libraries. (line  40)
+* tail:                                  Constants and Variables.
+                                                              (line   6)
+* ternary:                               TriINTERCAL.         (line   6)
+* Threaded INTERCAL:                     Multithreading and Backtracking.
+                                                              (line   6)
+* threading:                             Multithreading and Backtracking.
+                                                              (line   6)
+* threading, connected:                  Multithreading using WHILE.
+                                                              (line   6)
+* threading, dormant:                    Backtracking.        (line   6)
+* threading, in series:                  Backtracking.        (line   6)
+* threading, separate:                   Multithreading using COME FROM.
+                                                              (line   6)
+* threading, unwoven:                    Multithreading using COME FROM.
+                                                              (line   6)
+* threading, woven:                      Multithreading using WHILE.
+                                                              (line   6)
+* time-reversed goto:                    COME FROM and NEXT FROM.
+                                                              (line   6)
+* tips, OIL:                             OIL Tips.            (line   6)
+* too many input files:                  Errors.              (line 358)
+* TriINTERCAL:                           TriINTERCAL.         (line   6)
+* TriINTERCAL, operators in base 2:      Errors.              (line 482)
+* TRY AGAIN:                             TRY AGAIN.           (line   6)
+* 'TRY AGAIN', not last:                 Errors.              (line 458)
+* Turing Tape:                           C-INTERCAL I/O.      (line   6)
+* twospot:                               Constants and Variables.
+                                                              (line   6)
+* twospot overflow:                      Errors.              (line 264)
+* Ubuntu:                                Simple Installation. (line  92)
+* unary binary logic:                    Unary Binary Logic.  (line   6)
+* unary operator, infix:                 Grouping Rules.      (line  69)
+* unary operator, prefix:                Grouping Rules.      (line  69)
+* unary operators, portability:          Warnings.            (line  93)
+* uninstalling:                          Uninstalling.        (line   6)
+* unpacking C-INTERCAL:                  Unpacking.           (line   6)
+* unsupported file type:                 Errors.              (line 442)
+* unsupported file type <1>:             Errors.              (line 492)
+* unwoven threads:                       Multithreading using COME FROM.
+                                                              (line   6)
+* unzipping C-INTERCAL:                  Unpacking.           (line   6)
+* usage instructions, printing:          Other Options.       (line   9)
+* using external calls:                  Using External Calls.
+                                                              (line   6)
+* V:                                     Unary Binary Logic.  (line   6)
+* variable:                              Constants and Variables.
+                                                              (line   6)
+* variable, illegal number:              Errors.              (line 115)
+* variables, assignment:                 Calculate.           (line   6)
+* variables, from C:                     ick_get/setone/twospot.
+                                                              (line   6)
+* variables, Funge, accessing:           The IFFI Fingerprint.
+                                                              (line 121)
+* variables, Funge, setting:             The IFFI Fingerprint.
+                                                              (line 170)
+* variables, ignoring:                   IGNORE and REMEMBER. (line   6)
+* variables, limit:                      Errors.              (line 213)
+* variables, read-only:                  IGNORE and REMEMBER. (line   6)
+* variables, read-write:                 IGNORE and REMEMBER. (line   6)
+* variables, remembering:                IGNORE and REMEMBER. (line   6)
+* variables, stashes:                    STASH and RETRIEVE.  (line   6)
+* W016:                                  Warnings.            (line  12)
+* W018:                                  Warnings.            (line  19)
+* W112:                                  Warnings.            (line  32)
+* W128:                                  Warnings.            (line  42)
+* W239:                                  Warnings.            (line  64)
+* W276:                                  Warnings.            (line  53)
+* W278:                                  Warnings.            (line  73)
+* W450:                                  Warnings.            (line  84)
+* W534:                                  Warnings.            (line  93)
+* W622:                                  Warnings.            (line 104)
+* warnings:                              Warnings.            (line   6)
+* warnings, enabling:                    Debug Options.       (line  40)
+* warnings, non-INTERCAL-72:             Warnings.            (line  32)
+* what:                                  Unary Binary Logic.  (line   6)
+* WHILE:                                 Multithreading using WHILE.
+                                                              (line   6)
+* 'WHILE', not enabled:                  Errors.              (line 239)
+* whirlpool:                             TriINTERCAL.         (line   6)
+* whirlpool, in base 2:                  Errors.              (line 482)
+* wimpmode:                              Options to Generated Programs.
+                                                              (line  21)
+* woven threads:                         Multithreading using WHILE.
+                                                              (line   6)
+* WRITE IN:                              READ OUT and WRITE IN.
+                                                              (line   6)
+* WRITING IN:                            READ OUT and WRITE IN.
+                                                              (line   6)
+* wrong array dimension:                 Errors.              (line 146)
+* x:                                     OIL Patterns.        (line  94)
+* x1--x9:                                OIL Patterns.        (line  94)
+* xor:                                   Unary Binary Logic.  (line   6)
+* xor16:                                 OIL Patterns.        (line 117)
+* xor32:                                 OIL Patterns.        (line 117)
+* xselx:                                 OIL Patterns.        (line 130)
+* yuk:                                   The yuk debugger.    (line   6)
+* yuk, breakpoint overflow:              Errors.              (line 419)
+* yuk, command line option:              Debug Options.       (line  82)
+* yuk, commands:                         The yuk debugger.    (line  33)
+* yuk, input overflow:                   Errors.              (line 412)
+* yuk, profiling:                        Debug Options.       (line  48)
+* yuk, too many breakpoints:             Errors.              (line 419)
+
